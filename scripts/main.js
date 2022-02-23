@@ -4,18 +4,19 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Water } from 'three/examples/jsm/objects/Water.js';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import Boat from './boat'
+import Chest from './chest';
 
 const cameraOffset = new THREE.Vector3(0.0, 5.0, -5.0);
 
 let camera, scene, renderer;
 let controls, water, sun;
 let boat;
+let chest;
 
-init();
+init_world();
 animate();
 
-function init() {
-
+function init_world() {
     // Setup renderer
     renderer = new THREE.WebGLRenderer();
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -26,6 +27,7 @@ function init() {
     // Create Scene
     scene = new THREE.Scene();
     boat = new Boat(scene);
+    chest = new Chest(scene);
 
     // Create Camera
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
@@ -79,12 +81,9 @@ function init() {
     function updateSun() {
         const phi = THREE.MathUtils.degToRad(90 - parameters.elevation);
         const theta = THREE.MathUtils.degToRad(parameters.azimuth);
-
         sun.setFromSphericalCoords(1, phi, theta);
-
         sky.material.uniforms['sunPosition'].value.copy(sun);
         water.material.uniforms['sunDirection'].value.copy(sun).normalize();
-
         scene.environment = pmremGenerator.fromScene(sky).texture;
     }
 
@@ -112,24 +111,19 @@ function init() {
 }
 
 function onWindowResize() {
-
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-
     renderer.setSize(window.innerWidth, window.innerHeight);
-
 }
 
 function animate() {
     requestAnimationFrame(animate);
     render();
-    // boat.update();
-    boat.speed.vel = 1
+    chest.update();
+    boat.update();
 }
 
 function render() {
-
     water.material.uniforms['time'].value += 1.0 / 60.0;
     renderer.render(scene, camera);
-
 }

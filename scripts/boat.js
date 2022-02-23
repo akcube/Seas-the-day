@@ -3,10 +3,9 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 const loader = new GLTFLoader();
 
-export default class Boat extends Object3D{
+export default class Boat{
 
     constructor(scene){
-        super();
         loader.load("assets/models/aurora-space-battleship/scene.gltf", (gltf) => {
             scene.add( gltf.scene )
             gltf.scene.scale.set(1, 1, 1)
@@ -20,11 +19,6 @@ export default class Boat extends Object3D{
         })
     }
 
-    getWorldPosition(){
-        console.log(this.boat);
-        // return this.boat.getWorldPosition();
-    }
-
     stop(){
         this.speed.vel = 0
         this.speed.rot = 0
@@ -32,8 +26,8 @@ export default class Boat extends Object3D{
 
     update(){
         if(this.boat){
-            this.boat.rotation.y += this.speed.rot
-            this.boat.translateZ(-this.speed.vel)
+            if(this.boat.rotation.z + this.speed.rot >= -0.55 && this.boat.rotation.z + this.speed.rot <= 0.55)
+                this.boat.rotation.z += this.speed.rot
         }
     }
 
