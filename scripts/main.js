@@ -10,13 +10,16 @@ const cameraOffset = new THREE.Vector3(0.0, 5.0, -5.0);
 
 let camera, scene, renderer;
 let controls, water, sun;
-let boat;
-let chest;
 
-init_world();
+let boat;
+let chests = [];
+
+const MAX_CHESTS = 20;
+
+await init_world();
 animate();
 
-function init_world() {
+async function init_world() {
     // Setup renderer
     renderer = new THREE.WebGLRenderer();
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -26,8 +29,13 @@ function init_world() {
 
     // Create Scene
     scene = new THREE.Scene();
-    boat = new Boat(scene);
-    chest = new Chest(scene);
+    boat = new Boat();
+    await boat.init(scene);
+    for(let i=0; i<MAX_CHESTS; i++){  
+      let chest = new Chest();
+      await chest.init(scene);
+      chests.push(chest);
+    }
 
     // Create Camera
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
@@ -92,21 +100,20 @@ function init_world() {
     window.addEventListener('resize', onWindowResize);
     window.addEventListener( 'keydown', function(e){
         if(e.key == "ArrowUp"){
-          boat.speed.vel = 2
+          boat.velocity = 2
         }
         if(e.key == "ArrowDown"){
-          boat.speed.vel = 0.25
+          boat.velocity = 0.25
         }
         if(e.key == "ArrowRight"){
-          boat.speed.rot = -0.01
+          boat.turnRight();
         }
         if(e.key == "ArrowLeft"){
-          boat.speed.rot = 0.01
+          boat.turnLeft();
         }
       })
       window.addEventListener( 'keyup', function(e){
-            boat.speed.vel = 1;
-            boat.speed.rot = 0;
+            boat.reset();
       })
 }
 
@@ -119,11 +126,14 @@ function onWindowResize() {
 function animate() {
     requestAnimationFrame(animate);
     render();
-    chest.update();
     boat.update();
+    console.log(boat.boat.rotation.y);
+    for(let i = 0; i<MAX_CHESTS; i++){
+      chests[i].update(boat.boat.rotation.y);
+    }
 }
 
 function render() {
-    water.material.uniforms['time'].value += 1.0 / 60.0;
+    water.material.uniforms['time'].value -= 1.0 / 200.0;
     renderer.render(scene, camera);
 }
