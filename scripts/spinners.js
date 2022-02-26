@@ -32,6 +32,7 @@ export default class Spinners{
     update(){
         let fac = 1;
         let down = new THREE.Vector3(0, -fac, 0);
+        down.multiplyScalar(2);
         this.dir.add(down);
         this.spinners.translateOnAxis(this.dir, 0.05);
         this.bbox = new THREE.Box3().setFromObject(this.spinners);

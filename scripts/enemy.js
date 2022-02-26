@@ -17,25 +17,31 @@ export default class Enemy {
             this.Y = Math.random() * max_Y;
         }
 
+        this.destroyed = true;
         this.enemy = null;
         this.bbox = null;
         this.velocity = 1,
         this.rotation = 0;
         this.obtained = false;
-        this.destroyed = true;
+    }
+
+    respawn(){
+        this.X = Math.random() * max_X;
+        this.Y = Math.random() * max_Y;
+        while((this.X*this.X + this.Y*this.Y) <= 400000){
+            this.X = Math.random() * max_X;
+            this.Y = Math.random() * max_Y;
+        }
+        this.enemy.position.set(this.X, 22, this.Y);
     }
 
     async init(scene){
-        console.log("init called");
         if(this.destroyed == true){
-            console.log("Init running");
-            this.destroyed = false;
             let gltf = await loader.loadAsync("assets/models/space-pirate-ship/scene.gltf");
             scene.add(gltf.scene);
             gltf.scene.scale.set(22, 22, 22);
             gltf.scene.position.set(this.X, 22, this.Y);
             this.enemy = gltf.scene;
-
             this.bbox = new THREE.Box3().setFromObject(this.enemy);
         }
     }
@@ -47,6 +53,7 @@ export default class Enemy {
     async shoot(scene, proj_list){        
         let di = new THREE.Vector3(0, 0, 0);
         di.copy(this.enemy.position);
+        di.y += Math.random() * 20;
         di.negate();
         di.y = 20;
         let pro = new Projectile(di, this.enemy.position);
@@ -55,8 +62,6 @@ export default class Enemy {
     }
 
     destroy(scene){
-        scene.remove(this.enemy);
-        this.bbox = null;
     }
 
     update(boatRot){
@@ -65,12 +70,12 @@ export default class Enemy {
         dirVec1.normalize();
         var x = this.enemy.position.x;
         var y = this.enemy.position.z;
-        console.log(x*x + y*y);
+        // console.log(x*x + y*y);
         dirVec1.multiplyScalar(1);
         var dirVec2 = new THREE.Vector3(0, 0, 1);
         var axis = new THREE.Vector3(0, 1, 0);
         if(x*x + y*y <= 400000) dirVec1.multiplyScalar(0);
-        
+
         dirVec2.applyAxisAngle(axis, boatRot);
         dirVec2.negate();
         dirVec1.add(dirVec2);

@@ -28,7 +28,7 @@ let score = 0, health = 1000;
 let gameOver = false;
 
 const MAX_CHESTS = 50;
-const MAX_ENEMIES = 3;
+const MAX_ENEMIES = 1;
 
 await init_world();
 await animate();
@@ -39,7 +39,7 @@ function getRandomInt(max){
 
 setInterval(() => {
   let v = getRandomInt(enemies.length);
-  if(!enemies[v].destroyed) enemies[v].shoot(scene, proj_list);
+  enemies[v].shoot(scene, proj_list);
 }, 1000);
 
 async function init_world() {
@@ -249,10 +249,10 @@ async function animate() {
       }
 
       for(var v in enemies){
-        if(enemies[v].destroyed == true){
-          enemy_destroyed[v] = 1;
+        if(enemy_destroyed[v] == 1){
           enemies[v].destroy(scene);
-          enemies[v].init(scene);
+          enemies[v].respawn(scene);
+          enemy_destroyed[v] = 0;
         }
       }
       
