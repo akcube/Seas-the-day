@@ -6,15 +6,17 @@ import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import Boat from './boat'
 import Chest from './chest';
 import Enemy from './enemy';
+import Projectile from './projectile';
 
 const cameraOffset = new THREE.Vector3(0.0, 5.0, -5.0);
 
 let camera, scene, renderer;
 let controls, water, sun;
 
-let boat, enemy;
+let boat;
 let chests = [];
 let enemies = [];
+let proj_list = [];
 
 let camPos = new THREE.Vector3(0, 150, 200);
 let viewMode = 'FRONT';
@@ -26,7 +28,16 @@ const MAX_CHESTS = 100;
 const MAX_ENEMIES = 10;
 
 await init_world();
-animate();
+await animate();
+
+function getRandomInt(max){
+  return Math.floor(Math.random() * max);
+}
+
+setInterval(() => {
+  let v = getRandomInt(enemies.length);
+  enemies[v].shoot(scene, proj_list);
+}, 1000);
 
 async function init_world() {
     // Setup renderer
@@ -157,7 +168,7 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-function animate() {
+async function animate() {
     requestAnimationFrame(animate);
     render();
 
@@ -193,6 +204,19 @@ function animate() {
     for(let i = 0; i<MAX_ENEMIES; i++){
       enemies[i].update(boat.getRotation());
     }
+
+    for(var v in proj_list){
+      proj_list[v].update();
+    }
+    
+    for(var v in proj_list){
+      if(proj_list[v].projectile.position.y < -50) {
+        proj_list[v].destroy(scene);
+        proj_list.splice(v, 1);
+      }
+    }
+
+    console.log(proj_list.length);
 }
 
 function render() {

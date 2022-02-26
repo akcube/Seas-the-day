@@ -1,5 +1,6 @@
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import * as THREE from 'three';
+import Projectile from './projectile';
 
 const loader = new GLTFLoader();
 
@@ -13,6 +14,7 @@ export default class Enemy {
         this.Y = Math.random() * max_Y * 2 - max_Y;
 
         this.enemy = null;
+        this.bbox = null;
         this.velocity = 1,
         this.rotation = 0;
         this.obtained = false;
@@ -24,6 +26,24 @@ export default class Enemy {
         gltf.scene.scale.set(22, 22, 22);
         gltf.scene.position.set(this.X, 22, this.Y);
         this.enemy = gltf.scene;
+
+        // this.helper = new THREE.BoxHelper(this.enemy, 0xff0000 );
+        // scene.add( this.helper );
+        this.bbox = new THREE.Box3().setFromObject(this.enemy);
+    }
+
+    getRandomInt(max) {
+        return Math.floor(Math.random() * max);
+    }
+
+    async shoot(scene, proj_list){
+        let di = new THREE.Vector3(0, 0, 0);
+        di.copy(this.enemy.position);
+        di.negate();
+        di.y = 20;
+        let pro = new Projectile(di, this.enemy.position);
+        await pro.init(scene);
+        proj_list.push(pro);
     }
 
     update(boatRot){
@@ -38,6 +58,9 @@ export default class Enemy {
         this.enemy.translateOnAxis(dirVec1, this.velocity * 0.18);
         this.enemy.position.y = 22;
         this.enemy.lookAt(0, 0, 0);
+
+        // this.helper.update();
+        this.bbox = new THREE.Box3().setFromObject(this.enemy);
     }
 
 

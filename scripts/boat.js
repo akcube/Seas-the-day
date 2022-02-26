@@ -21,10 +21,10 @@ export default class Boat{
         gltf.scene.scale.set(1, 1, 1);
         gltf.scene.position.set(0,13,0);
 
-        this.helper = new THREE.BoxHelper(this.boat, 0xffff00 );
-        scene.add( this.helper );
+        // this.helper = new THREE.BoxHelper(this.boat, 0x06a5f8 );
+        // scene.add( this.helper );
 
-        this.bbox = new THREE.Box3().setFromObject(this.helper);
+        this.bbox = new THREE.Box3().setFromObject(this.boat);
     }
 
     reset(){
@@ -33,12 +33,12 @@ export default class Boat{
     }
 
     turnLeft(){
-        this.tilt = 0.01;
+        this.tilt = 0.1;
         this.rotation = 0.01;
     }
 
     turnRight(){
-        this.tilt = -0.01;
+        this.tilt = -0.1;
         this.rotation = -0.01;
     }
 
@@ -53,7 +53,6 @@ export default class Boat{
             this.boat.rotation.z += this.tilt * 0.1;
         if((this.boat.rotation.z > 0 && this.rotation > 0) || (this.boat.rotation.z < 0 && this.rotation < 0)) 
             this.boat.rotation.y += this.rotation * 0.1;
-        this.helper.update();
         this.bbox = new THREE.Box3().setFromObject(this.boat);
     }
 }

@@ -27,16 +27,16 @@ export default class Chest {
         gltf.scene.position.set(this.X, 0, this.Y);
         this.chest = gltf.scene;
 
-        this.helper = new THREE.BoxHelper(this.chest, 0xff0000 );
-        scene.add( this.helper );
+        // this.helper = new THREE.BoxHelper(this.chest, 0x00ff00 );
+        // scene.add( this.helper );
 
-        this.bbox = new THREE.Box3().setFromObject(this.helper);
+        this.bbox = new THREE.Box3().setFromObject(this.chest);
     }
 
     destroy(scene){
-        scene.remove(this.helper);
+        // scene.remove(this.helper);
         scene.remove(this.chest);
-        this.helper.update();
+        // this.helper.update();
         this.bbox = null;
     }
 
@@ -54,7 +54,7 @@ export default class Chest {
             this.chest.position.set(this.X, 0, this.Y);
         }
 
-        this.helper.update();
+        // this.helper.update();
         this.bbox = new THREE.Box3().setFromObject(this.chest);
     }
 
