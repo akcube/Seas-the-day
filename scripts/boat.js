@@ -1,5 +1,6 @@
 import { Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import * as THREE from 'three';
 
 const loader = new GLTFLoader();
 
@@ -7,6 +8,7 @@ export default class Boat{
 
     constructor(){
         this.boat = null;
+        this.bbox = null;
         this.velocity = 1;
         this.rotation = 0;
         this.tilt = 0;
@@ -18,6 +20,11 @@ export default class Boat{
         scene.add(gltf.scene);
         gltf.scene.scale.set(1, 1, 1);
         gltf.scene.position.set(0,13,0);
+
+        this.helper = new THREE.BoxHelper(this.boat, 0xffff00 );
+        scene.add( this.helper );
+
+        this.bbox = new THREE.Box3().setFromObject(this.helper);
     }
 
     reset(){
@@ -40,15 +47,13 @@ export default class Boat{
     }
 
     update(){
-        if(this.boat){
-            if(this.tilt == 0 && this.boat.rotation.z < 0) this.boat.rotation.z += 0.001;
-            else if(this.tilt == 0 && this.boat.rotation.z > 0) this.boat.rotation.z -= 0.001;
-            else if(this.boat.rotation.z + this.tilt >= -0.55 && this.boat.rotation.z + this.tilt <= 0.55)
-                this.boat.rotation.z += this.tilt * 0.1;
-            if((this.boat.rotation.z > 0 && this.rotation > 0) || (this.boat.rotation.z < 0 && this.rotation < 0)) 
-                this.boat.rotation.y += this.rotation * 0.1;
-        }
+        if(this.tilt == 0 && this.boat.rotation.z < 0) this.boat.rotation.z += 0.001;
+        else if(this.tilt == 0 && this.boat.rotation.z > 0) this.boat.rotation.z -= 0.001;
+        else if(this.boat.rotation.z + this.tilt >= -0.55 && this.boat.rotation.z + this.tilt <= 0.55)
+            this.boat.rotation.z += this.tilt * 0.1;
+        if((this.boat.rotation.z > 0 && this.rotation > 0) || (this.boat.rotation.z < 0 && this.rotation < 0)) 
+            this.boat.rotation.y += this.rotation * 0.1;
+        this.helper.update();
+        this.bbox = new THREE.Box3().setFromObject(this.boat);
     }
-
-
 }

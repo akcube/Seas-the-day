@@ -5,16 +5,25 @@ import { Water } from 'three/examples/jsm/objects/Water.js';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import Boat from './boat'
 import Chest from './chest';
+import Enemy from './enemy';
 
 const cameraOffset = new THREE.Vector3(0.0, 5.0, -5.0);
 
 let camera, scene, renderer;
 let controls, water, sun;
 
-let boat;
+let boat, enemy;
 let chests = [];
+let enemies = [];
 
-const MAX_CHESTS = 20;
+let camPos = new THREE.Vector3(0, 150, 200);
+let viewMode = 'FRONT';
+let specAngle = 0.0;
+
+let score = 0;
+
+const MAX_CHESTS = 100;
+const MAX_ENEMIES = 10;
 
 await init_world();
 animate();
@@ -35,6 +44,11 @@ async function init_world() {
       let chest = new Chest();
       await chest.init(scene);
       chests.push(chest);
+    }
+    for(let i=0; i<MAX_ENEMIES; i++){
+      let enemy = new Enemy();
+      await enemy.init(scene);
+      enemies.push(enemy);
     }
 
     // Create Camera
@@ -99,17 +113,37 @@ async function init_world() {
 
     window.addEventListener('resize', onWindowResize);
     window.addEventListener( 'keydown', function(e){
-        if(e.key == "ArrowUp"){
+        if(e.key == "w"){
           boat.velocity = 2
         }
-        if(e.key == "ArrowDown"){
+        if(e.key == "s"){
           boat.velocity = 0.25
         }
-        if(e.key == "ArrowRight"){
+        if(e.key == "d"){
           boat.turnRight();
         }
-        if(e.key == "ArrowLeft"){
+        if(e.key == "a"){
           boat.turnLeft();
+        }
+        if(e.key == "j"){
+          if(viewMode == "FRONT") { 
+            viewMode = "TOP"; 
+            camera.zoom = 0.45;
+            camera.fov = 45;
+            camera.updateProjectionMatrix();
+          }
+          else if(viewMode == "TOP") {
+            camera.zoom = 0.3;
+            camera.fov = 65;
+            viewMode = "ROTATE";
+            camera.updateProjectionMatrix();
+          }
+          else if(viewMode == 'ROTATE'){
+            viewMode = "FRONT";
+            camera.zoom = 0.45;
+            camera.fov = 45;
+            camera.updateProjectionMatrix();
+          }
         }
       })
       window.addEventListener( 'keyup', function(e){
@@ -126,10 +160,38 @@ function onWindowResize() {
 function animate() {
     requestAnimationFrame(animate);
     render();
+
+    if(viewMode == 'FRONT'){
+      let nPos = new THREE.Vector3(0, 0, 0).copy(camPos);
+      let axis = new THREE.Vector3(0, 1, 0);
+      nPos.applyAxisAngle(axis, boat.getRotation());
+      camera.position.set(nPos.x, nPos.y, nPos.z);
+      camera.lookAt(0, 0, 0);  
+    }
+    else if(viewMode == 'TOP'){
+      camera.position.set(0, 600, 0);
+      camera.lookAt(0, 0, 0);
+    }
+    else if(viewMode == 'ROTATE'){
+      let nPos = new THREE.Vector3(0, 0, 0).copy(camPos);
+      let axis = new THREE.Vector3(0, 1, 0);
+      nPos.applyAxisAngle(axis, specAngle);
+      specAngle += 0.01;
+      camera.position.set(nPos.x, nPos.y, nPos.z);
+      camera.lookAt(0, 0, 0); 
+    }
+
     boat.update();
-    console.log(boat.boat.rotation.y);
     for(let i = 0; i<MAX_CHESTS; i++){
-      chests[i].update(boat.boat.rotation.y);
+      if(boat.bbox.intersectsBox(chests[i].bbox)){
+        score += 2;
+        chests[i].destroy(scene);
+        chests[i].init(scene);
+      }
+      chests[i].update(boat.getRotation());
+    }
+    for(let i = 0; i<MAX_ENEMIES; i++){
+      enemies[i].update(boat.getRotation());
     }
 }
 
