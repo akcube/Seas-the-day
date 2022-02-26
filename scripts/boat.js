@@ -1,6 +1,7 @@
 import { Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import * as THREE from 'three';
+import Spinners from './spinners';
 
 const loader = new GLTFLoader();
 
@@ -34,21 +35,32 @@ export default class Boat{
 
     turnLeft(){
         this.tilt = 0.1;
-        this.rotation = 0.01;
+        this.rotation = 0.05;
     }
 
     turnRight(){
         this.tilt = -0.1;
-        this.rotation = -0.01;
+        this.rotation = -0.05;
     }
 
     getRotation(){
         return this.boat.rotation.y;
     }
 
+    async shoot(scene, ball_list){
+        if(ball_list.length == 0){
+            let di = new THREE.Vector3(0, 0, -50);
+            let axis = new THREE.Vector3(0, 1, 0);
+            di.applyAxisAngle(axis, this.boat.rotation.y);
+            let pro = new Spinners(di);
+            await pro.init(scene);
+            ball_list.push(pro);
+        }
+    }
+
     update(){
-        if(this.tilt == 0 && this.boat.rotation.z < 0) this.boat.rotation.z += 0.001;
-        else if(this.tilt == 0 && this.boat.rotation.z > 0) this.boat.rotation.z -= 0.001;
+        if(this.tilt == 0 && this.boat.rotation.z < 0.025) this.boat.rotation.z += 0.01;
+        else if(this.tilt == 0 && this.boat.rotation.z > 0.025) this.boat.rotation.z -= 0.01;
         else if(this.boat.rotation.z + this.tilt >= -0.55 && this.boat.rotation.z + this.tilt <= 0.55)
             this.boat.rotation.z += this.tilt * 0.1;
         if((this.boat.rotation.z > 0 && this.rotation > 0) || (this.boat.rotation.z < 0 && this.rotation < 0)) 

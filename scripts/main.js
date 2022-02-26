@@ -11,21 +11,24 @@ import Projectile from './projectile';
 const cameraOffset = new THREE.Vector3(0.0, 5.0, -5.0);
 
 let camera, scene, renderer;
-let controls, water, sun;
+let water, sun;
 
 let boat;
 let chests = [];
 let enemies = [];
 let proj_list = [];
+let ball_list = [];
+let enemy_destroyed = []
 
 let camPos = new THREE.Vector3(0, 150, 200);
 let viewMode = 'FRONT';
 let specAngle = 0.0;
 
-let score = 0;
+let score = 0, health = 1000;
+let gameOver = false;
 
-const MAX_CHESTS = 100;
-const MAX_ENEMIES = 10;
+const MAX_CHESTS = 50;
+const MAX_ENEMIES = 3;
 
 await init_world();
 await animate();
@@ -36,10 +39,14 @@ function getRandomInt(max){
 
 setInterval(() => {
   let v = getRandomInt(enemies.length);
-  enemies[v].shoot(scene, proj_list);
+  if(!enemies[v].destroyed) enemies[v].shoot(scene, proj_list);
 }, 1000);
 
 async function init_world() {
+
+    for(var i = 0; i<MAX_ENEMIES; i++)
+      enemy_destroyed.push(0);
+
     // Setup renderer
     renderer = new THREE.WebGLRenderer();
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -156,6 +163,9 @@ async function init_world() {
             camera.updateProjectionMatrix();
           }
         }
+        if(e.key == " "){
+          boat.shoot(scene, ball_list);
+        }
       })
       window.addEventListener( 'keyup', function(e){
             boat.reset();
@@ -169,54 +179,99 @@ function onWindowResize() {
 }
 
 async function animate() {
-    requestAnimationFrame(animate);
-    render();
 
-    if(viewMode == 'FRONT'){
-      let nPos = new THREE.Vector3(0, 0, 0).copy(camPos);
-      let axis = new THREE.Vector3(0, 1, 0);
-      nPos.applyAxisAngle(axis, boat.getRotation());
-      camera.position.set(nPos.x, nPos.y, nPos.z);
-      camera.lookAt(0, 0, 0);  
-    }
-    else if(viewMode == 'TOP'){
-      camera.position.set(0, 600, 0);
-      camera.lookAt(0, 0, 0);
-    }
-    else if(viewMode == 'ROTATE'){
-      let nPos = new THREE.Vector3(0, 0, 0).copy(camPos);
-      let axis = new THREE.Vector3(0, 1, 0);
-      nPos.applyAxisAngle(axis, specAngle);
-      specAngle += 0.01;
-      camera.position.set(nPos.x, nPos.y, nPos.z);
-      camera.lookAt(0, 0, 0); 
-    }
+    if(!gameOver){
+      requestAnimationFrame(animate);
+      render();
 
-    boat.update();
-    for(let i = 0; i<MAX_CHESTS; i++){
-      if(boat.bbox.intersectsBox(chests[i].bbox)){
-        score += 2;
-        chests[i].destroy(scene);
-        chests[i].init(scene);
+      if(viewMode == 'FRONT'){
+        let nPos = new THREE.Vector3(0, 0, 0).copy(camPos);
+        let axis = new THREE.Vector3(0, 1, 0);
+        nPos.applyAxisAngle(axis, boat.getRotation());
+        camera.position.set(nPos.x, nPos.y, nPos.z);
+        camera.lookAt(0, 0, 0);  
       }
-      chests[i].update(boat.getRotation());
-    }
-    for(let i = 0; i<MAX_ENEMIES; i++){
-      enemies[i].update(boat.getRotation());
-    }
+      else if(viewMode == 'TOP'){
+        camera.position.set(0, 600, 0);
+        camera.lookAt(0, 0, 0);
+      }
+      else if(viewMode == 'ROTATE'){
+        let nPos = new THREE.Vector3(0, 0, 0).copy(camPos);
+        let axis = new THREE.Vector3(0, 1, 0);
+        nPos.applyAxisAngle(axis, specAngle);
+        specAngle += 0.01;
+        camera.position.set(nPos.x, nPos.y, nPos.z);
+        camera.lookAt(0, 0, 0); 
+      }
 
-    for(var v in proj_list){
-      proj_list[v].update();
-    }
-    
-    for(var v in proj_list){
-      if(proj_list[v].projectile.position.y < -50) {
-        proj_list[v].destroy(scene);
-        proj_list.splice(v, 1);
+      boat.update();
+      for(let i = 0; i<MAX_CHESTS; i++){
+        if(boat.bbox.intersectsBox(chests[i].bbox)){
+          score += 2;
+          chests[i].destroy(scene);
+          chests[i].init(scene);
+        }
+        chests[i].update(boat.getRotation());
+      }
+      for(let i = 0; i<MAX_ENEMIES; i++){
+        enemies[i].update(boat.getRotation());
+      }
+
+      for(var v in proj_list){
+        proj_list[v].update();
+        if(boat.bbox.intersectsBox(proj_list[v].bbox)){
+          health -= 1;
+        }
+      }
+
+      for(var v in enemies){
+        if(boat.bbox.intersectsBox(enemies[v].bbox)){
+          health = 0;
+        }
+      }
+      
+      for(var v in proj_list){
+        if(proj_list[v].projectile.position.y < -50) {
+          proj_list[v].destroy(scene);
+          proj_list.splice(v, 1);
+        }
+      }
+
+      for(var v in ball_list){
+        ball_list[v].update();
+        for(var e in enemies){
+          if(enemy_destroyed[e] == 1) continue;
+          if(enemies[e].bbox.intersectsBox(ball_list[v].bbox)){
+            enemy_destroyed[e] = 1;
+            enemies[e].destroyed = true;
+          }
+        }
+      }
+
+      for(var v in enemies){
+        if(enemies[v].destroyed == true){
+          enemy_destroyed[v] = 1;
+          enemies[v].destroy(scene);
+          enemies[v].init(scene);
+        }
+      }
+      
+      for(var v in ball_list){
+        if(ball_list[v].spinners.position.y < -50) {
+          ball_list[v].destroy(scene);
+          ball_list.splice(v, 1);
+        }
+      }
+
+      document.getElementById("score").innerHTML = "Score: " + score;
+      document.getElementById("health").innerHTML = "Health: " + health;
+
+      if(health <= 0){
+        gameOver = true;
+        document.getElementById("health").innerHTML = "Health: " + 0;
+        document.getElementById("game-over").innerHTML = "Game over! Max score: " + score;
       }
     }
-
-    console.log(proj_list.length);
 }
 
 function render() {

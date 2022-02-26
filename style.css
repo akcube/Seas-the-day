@@ -6,3 +6,31 @@
   color: #2c3e50;
   margin-top: 60px;
 }
+
+#score{
+  position: absolute;
+  top: 10px;
+  width: 100%;
+  text-align: center;
+  z-index: 100;
+  display: block;
+}
+
+#health{
+  position: absolute;
+  top: 10px;
+  width: 100%;
+  text-align: left;
+  z-index: 100;
+  display: block;
+}
+
+#game-over{
+  position: absolute;
+  top: 20px;
+  width: 100%;
+  text-align: center;
+  z-index: 100;
+  display: block;
+  font-size: 150px;
+}
